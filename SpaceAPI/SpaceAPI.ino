@@ -41,7 +41,9 @@ static void updateTemperature(float temp) {
 
   if (DEBUG) return;
 
-  snprintf(sendBuffer, sizeof sendBuffer, "key=%s&temp=%d \0", TOKEN, (int)temp);
+  char floatBuffer[5];
+  dtostrf(temp, 4, 2, floatBuffer);
+  snprintf(sendBuffer, sizeof sendBuffer, "key=%s&temp=%s \0", TOKEN, floatBuffer);
   ether.httpPost(endpoint, api, NULL, sendBuffer, NULL);
 
 //  Serial.println("[>] Done sending temperature!");
@@ -150,7 +152,7 @@ void loop () {
       Serial.print("[!] Temp updated: ");
       Serial.println(newTemp);
       updateTemperature(newTemp);
-      //oldTemp = newTemp;
+      oldTemp = newTemp;
     } else Serial.println("[*] Nothing to do.");
 
   }
