@@ -1,0 +1,42 @@
+{
+    "api": "0.13",
+    "space": "LosFuzzysLab",
+    "logo": "http:\/\/losfuzzys.github.io\/images\/fuzzy.jpg",
+    "url": "https:\/\/hack.more.systems",
+    "location": {
+        "address": "Inffeldgasse 16a, A-8010 Graz ",
+        "lon": 15.457819,
+        "lat": 47.058409
+    },
+    "spacefed": {
+        "spacenet": false,
+        "spacesaml": false,
+        "spacephone": false
+    },
+    "contact": {
+        "twitter": "@LosFuzzys",
+        "email": "we@hack.more.systems",
+        "issue_mail": "d2VAaGFjay5tb3JlLnN5c3RlbXM="
+    },
+    "issue_report_channels": [
+        "issue_mail"
+    ],
+    "state": {
+        "open": true
+    },
+    "projects": [
+        "https:\/\/github.com\/losfuzzys"
+    ],
+    "cache": {
+        "schedule": "m.02"
+    },
+    "sensors": {
+        "temperature": [
+            {
+                "value": 42.5,
+                "unit": "\u00b0C",
+                "location": "Lab 1 Ground Floor"
+            }
+        ]
+    }
+}
