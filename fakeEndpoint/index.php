@@ -13,20 +13,19 @@ if (isset($_POST['key']) && $_POST['key'] !== 'YOUR_KEY_HERE') {
 $data = json_decode(file_get_contents($file), true);
 
 if (isset($_POST['sensors'])) {
-    $sensors         = json_decode($_POST['sensors'], true);
+    $sensors = json_decode($_POST['sensors'], true);
     $data['sensors'] = $sensors['sensors'];
     echo "sensors set!\n";
 }
 
 if (isset($_POST['temp'])) {
-    $temp                                       = floatval($_POST['temp']);
+    $temp = floatval($_POST['temp']);
     $data['sensors']['temperature'][0]['value'] = $temp;
-    ;
     echo "temp set to $temp!\n";
 }
 
 if (isset($_POST['door'])) {
-    $door                  = $_POST['door'] == "true";
+    $door = $_POST['door'] == "null" ? null : $_POST['door'] == "true";
     $data['state']['open'] = $door;
     echo "door set to $door!\n";
 }
