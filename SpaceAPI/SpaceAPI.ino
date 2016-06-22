@@ -11,9 +11,9 @@ byte mymac[] = { 0x74, 0x69, 0x69, 0x2D, 0x30, 0x31 };
 // CONFIG:
 #define BAUDRATE 9600
 //const char api[]      PROGMEM = "spaceapi.net";
-//const char endpoint[] PROGMEM = "new/space/losfuzzyslab/sensor/set";
+//const char endpoint[] PROGMEM = "/new/space/losfuzzyslab/sensor/set";
 const char api[]      PROGMEM = "think.2904.cc";
-const char endpoint[] PROGMEM = "losfuzzys/index.php";
+const char endpoint[] PROGMEM = "/losfuzzys/index.php";
 
 #define PIN_ONEWIRE 2
 #define TEMPERATURE_PRECISION 9 // Lower resolution
@@ -26,7 +26,7 @@ const char endpoint[] PROGMEM = "losfuzzys/index.php";
 
 static byte session;
 byte Ethernet::buffer[700];
-Stash stash;
+char sendBuffer[128];
 
 float oldTemp = 0;
 int numberOfDevices;
@@ -41,73 +41,21 @@ static void updateTemperature(float temp) {
 
   if (DEBUG) return;
 
-  byte sd = stash.create();
+  snprintf(sendBuffer, sizeof sendBuffer, "key=%s&temp=%d \0", TOKEN, (int)temp);
+  ether.httpPost(endpoint, api, NULL, sendBuffer, NULL);
 
-  ether.dnsLookup(api);
-
-  stash.print("key=");
-  stash.print(TOKEN);
-  stash.print("&temp=");
-  stash.println(42.0);
-  stash.save();
-  int stash_size = stash.size();
-
-  Stash::prepare(PSTR("POST http://$F/$F HTTP/1.0" "\r\n"
-                      "Host: $F" "\r\n"
-                      "Content-Type: application/x-www-form-urlencoded \r\n"
-                      "Content-Length: $D" "\r\n"
-                      "\r\n"
-                      "$H"),
-                 api, endpoint, api, stash_size, sd);
-
-  Serial.println(Stash::length());
-  for (word i = 0, n = Stash::length(); i < n; ++i)
-  {
-    char c;
-    Stash::extract(i, 1, &c);
-    Serial.print(c);
-  }
-  Serial.println();
-
-  // send the packet - this also releases all stash buffers once done
-  // Save the session ID so we can watch for it in the main loop.
-  session = ether.tcpSend();
-
-  Serial.println("[>] Done sending temperature!");
+//  Serial.println("[>] Done sending temperature!");
 }
 
 static void updateDoorstatus(int isOpen) {
   Serial.println("[>] Sending new doorstatus ...");
-
+  
   if (DEBUG) return;
 
-  byte sd = stash.create();
-
-  //const char s_error[]  = "%7B%22state%22%3A%7B%22open%22%3Anull%7D%7D";
-  //const char s_open[]  = "%7B%22state%22%3A%7B%22open%22%3Atrue%7D%7D";
-  //const char s_close[] = "%7B%22state%22%3A%7B%22open%22%3Afalse%7D%7D";
-  stash.print("key=");
-  stash.print(TOKEN);
-  //stash.print("&sensors=");
-  //stash.println(isOpen == DOOR_OPEN ? s_open : (isOpen == DOOR_CLOSED ? s_close : s_error));
-  stash.print("&door=");
-  stash.println(isOpen == DOOR_OPEN ? "true" : (isOpen == DOOR_CLOSED ? "false" : "null"));
-  stash.save();
-  int stash_size = stash.size();
-
-  Stash::prepare(PSTR("POST /$F HTTP/1.0" "\r\n"
-                      "Host: $F" "\r\n"
-                      "Content-type: application/x-www-form-urlencoded" "\r\n"
-                      "Content-length: $D" "\r\n"
-                      "\r\n"
-                      "$H"),
-                 endpoint, api, stash_size, sd);
-
-  // send the packet - this also releases all stash buffers once done
-  // Save the session ID so we can watch for it in the main loop.
-  session = ether.tcpSend();
-
-  Serial.println("[>] Done sending doorstatus!");
+  snprintf(sendBuffer, sizeof sendBuffer, "key=%s&door=%d \0", TOKEN, isOpen);
+  ether.httpPost(endpoint, api, NULL, sendBuffer, NULL);
+  
+//  Serial.println("[>] Done sending doorstatus!");
 }
 
 void findTempSensor() {
@@ -116,17 +64,17 @@ void findTempSensor() {
     numberOfDevices = sensors.getDeviceCount();
 
     // locate devices on the bus
-    Serial.print("[T] Locating one-wire devices on port ");
-    Serial.println(PIN_ONEWIRE);
-
+    //    Serial.print("[T] Locating one-wire devices on port ");
+    //    Serial.println(PIN_ONEWIRE);
+    //
     Serial.print("[T] Found ");
     Serial.print(numberOfDevices, DEC);
     Serial.println(" one-wire devices.");
-
-    // report parasite power requirements
-    Serial.print("[T] Parasite power is: ");
-    if (sensors.isParasitePowerMode()) Serial.println("ON");
-    else Serial.println("OFF");
+    //
+    //    // report parasite power requirements
+    //    Serial.print("[T] Parasite power is: ");
+    //    if (sensors.isParasitePowerMode()) Serial.println("ON");
+    //    else Serial.println("OFF");
 
     if (numberOfDevices < 1) delay(500);
   }
@@ -135,42 +83,16 @@ void findTempSensor() {
   {
     if (sensors.getAddress(tempDeviceAddress, i))
     {
-      Serial.print("[T] Found device ");
-      Serial.println(i, DEC);
+      //      Serial.print("[T] Found device ");
+      //      Serial.println(i, DEC);
       sensors.setResolution(tempDeviceAddress, TEMPERATURE_PRECISION);
     } else
     {
-      Serial.print("[T] Found ghost device at ");
-      Serial.print(i, DEC);
-      Serial.print(" but could not detect address. Check power and cabling");
+      //      Serial.print("[T] Found ghost device at ");
+      //      Serial.print(i, DEC);
+      //      Serial.print(" but could not detect address. Check power and cabling");
     }
   }
-}
-
-static void sendToTwitter () {
-  Serial.println("Sending tweet...");
-  byte sd = stash.create();
-
-  const char tweet[] = "@solarkennedy the test Twitter sketch works!";
-  stash.print("token=");
-  stash.print(TOKEN);
-  stash.print("&status=");
-  stash.println(tweet);
-  stash.save();
-  int stash_size = stash.size();
-
-  // Compose the http POST request, taking the headers below and appending
-  // previously created stash in the sd holder.
-  Stash::prepare(PSTR("POST http://$F/update HTTP/1.0" "\r\n"
-    "Host: $F" "\r\n"
-    "Content-Length: $D" "\r\n"
-    "\r\n"
-    "$H"),
-  api, api, stash_size, sd);
-
-  // send the packet - this also releases all stash buffers once done
-  // Save the session ID so we can watch for it in the main loop.
-  session = ether.tcpSend();
 }
 
 void setup () {
@@ -190,7 +112,7 @@ void setup () {
     if (!ether.dhcpSetup())
       Serial.println(F("[N] DHCP failed"));
 
-    ether.printIp("[N] IP:  ", ether.myip);
+    //    ether.printIp("[N] IP:  ", ether.myip);
     ether.printIp("[N] GW:  ", ether.gwip);
     ether.printIp("[N] DNS: ", ether.dnsip);
 
@@ -199,7 +121,6 @@ void setup () {
 
     ether.printIp("[N] SRV: ", ether.hisip);
   }
-  sendToTwitter();
 }
 
 float getTemp() {
@@ -209,35 +130,29 @@ float getTemp() {
   return temp;
 }
 
+static uint32_t timer;
 void loop () {
   ether.packetLoop(ether.packetReceive());
 
-  // TODO: check doorsensor
-  int newDoorstatus = DOOR_ERROR;
-  float newTemp = getTemp();
+  if (millis() > timer) {
+    timer = millis() + 5000;
 
-  if (newDoorstatus != oldDoorstatus) {
-    Serial.println(newDoorstatus == DOOR_OPEN ? "[!] DOOR OPENED!" : "[!] DOOR CLOSED!");
-    updateDoorstatus(newDoorstatus);
-    oldDoorstatus = newDoorstatus;
+    // TODO: check doorsensor
+    int newDoorstatus = DOOR_ERROR;
+    float newTemp = getTemp();
 
-  } else if (newTemp != oldTemp) { // comparing floats? well ...
-    Serial.print("[!] Temp updated: ");
-    Serial.println(newTemp);
-    updateTemperature(newTemp);
-    //oldTemp = newTemp;
-  } else Serial.println("[*] Nothing to do.");
+    if (newDoorstatus != oldDoorstatus) {
+      Serial.println(newDoorstatus == DOOR_OPEN ? "[!] DOOR OPENED!" : "[!] DOOR CLOSED!");
+      updateDoorstatus(newDoorstatus);
+      oldDoorstatus = newDoorstatus;
 
-  // HTTP response handling (mostly for debug)
-  // (this may need all your dynamic memory)
+    } else if (newTemp != oldTemp) { // comparing floats? well ...
+      Serial.print("[!] Temp updated: ");
+      Serial.println(newTemp);
+      updateTemperature(newTemp);
+      //oldTemp = newTemp;
+    } else Serial.println("[*] Nothing to do.");
 
-  //  const char* reply = ether.tcpReply(session);
-  //  if (reply != 0) {
-  //    Serial.println("[<] Got a response:");
-  //    Serial.println(reply);
-  //  }
-
-  delay(5000);
-
+  }
 }
 
