@@ -1,3 +1,4 @@
+import os
 import time
 import socket
 import requests
@@ -10,7 +11,7 @@ GRAPHITEPORT = 2003
 
 def logSensor(logtime, sock, space, sensorname, value):
     name = 'sensors.' + space + '.' + sensorname
-    data = '%s %s %s' % (name, value, logtime)
+    data = '%s %s %s\n' % (name, value, logtime)
     print data
     sock.send(data)
 
@@ -34,7 +35,9 @@ def init():
     return logtime, sock
 
 if __name__ == '__main__':
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    file = os.path.join(cwd, ENDPOINTFILE)
     logtime, sock = init()
-    with open(ENDPOINTFILE, 'r') as f:
+    with open(file, 'r') as f:
         for endpoint in f:
             logEndpoint(logtime, sock, endpoint.strip())
