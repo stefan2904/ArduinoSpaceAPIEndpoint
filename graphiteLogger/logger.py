@@ -40,4 +40,7 @@ if __name__ == '__main__':
     logtime, sock = init()
     with open(file, 'r') as f:
         for endpoint in f:
-            logEndpoint(logtime, sock, endpoint.strip())
+            try:
+                logEndpoint(logtime, sock, endpoint.strip())
+            except Exception as e:
+                print e
