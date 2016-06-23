@@ -12,7 +12,7 @@ GRAPHITEPORT = 2003
 def logSensor(logtime, sock, space, sensorname, value):
     name = 'sensors.' + space + '.' + sensorname
     data = '%s %s %s\n' % (name, value, logtime)
-    print data
+    print data,
     sock.send(data)
 
 
