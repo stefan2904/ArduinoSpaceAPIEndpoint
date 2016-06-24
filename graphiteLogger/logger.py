@@ -8,6 +8,14 @@ ENDPOINTFILE = 'endpoints.txt'
 GRAPHITEHOST = '127.0.0.1'
 GRAPHITEPORT = 2003
 
+interesting_sensors = [
+    'ext_batterycharge',
+    'ext_illumination',
+    'ext_voltage',
+    'humidity',
+    'temperature',
+    'total_member_count']
+
 
 def logSensor(logtime, sock, space, sensorname, value):
     name = 'sensors.' + space + '.' + sensorname
@@ -19,11 +27,18 @@ def logSensor(logtime, sock, space, sensorname, value):
 def logEndpoint(logtime, sock, url):
     data = requests.get(url).json()
     space = data['space']
-    for sensor in data['sensors']['temperature']:
-        location = sensor['location'].replace(' ', '')
-        value = sensor['value']
-        # unit = sensor['unit']  # assume degreeC
-        logSensor(logtime, sock, space, location, value)
+    for sensortype in data['sensors']:
+        if sensortype not in interesting_sensors:
+            continue
+        for sensor in data['sensors'][sensortype]:
+            try:
+                location = sensor['location'].replace(' ', '')
+                location = sensortype + '.' + location
+                value = sensor['value']
+                # unit = sensor['unit']  # assume degreeC
+                logSensor(logtime, sock, space, location, value)
+            except Exception as e:
+                print e
 
 
 def init():
